@@ -38,7 +38,7 @@ use vars qw(@ISA %EXPORT_TAGS @EXPORT_OK @EXPORT $VERSION);
 @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 @EXPORT = qw( );
 
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 sub AUTOLOAD {
   my $constname;

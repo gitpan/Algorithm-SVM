@@ -18,6 +18,7 @@ SVM::SVM(int st, int kt, double d, double g, double c0, double C, double nu,
   param.nr_weight = 0;
   param.weight_label = NULL;
   param.weight = NULL;
+  param.probability = 0;
   
   x_space = NULL;
   model   = NULL;
