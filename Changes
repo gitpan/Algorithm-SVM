@@ -11,3 +11,6 @@ Revision history for Perl extension Algorithm::SVM.
 0.03  Wed Nov  6 14:50:42 PST 2002
 	- added a fix to bindings.h to allow compilation under g++
 	  version 3.0
+
+0.04  Wed Nov  6 16:26:42 PST 2002
+	- did the "proper" C++ fix for above bug
