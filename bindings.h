@@ -4,8 +4,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 #include "libsvm.h"
 
 class DataSet {

@@ -8,9 +8,6 @@ Revision history for Perl extension Algorithm::SVM.
 	- compilation errors on Mac OS X fixed, other bug fixes
           and code cleanups.
 
-0.03  Wed Nov  6 14:50:42 PST 2002
-	- added a fix to bindings.h to allow compilation under g++
-	  version 3.0
-
-0.04  Wed Nov  6 16:26:42 PST 2002
-	- did the "proper" C++ fix for above bug
+0.05  Tue Nov 26 10:46:46 PST 2002
+	- fixed build error for perl-5.8.0 with ithreads.  Thanks
+          to Mike Castle for this report and patch.

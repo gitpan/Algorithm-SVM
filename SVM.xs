@@ -1,3 +1,6 @@
+#include <vector>
+#include <map>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -9,9 +12,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#include <vector>
-#include <map>
 
 #include "bindings.h"
 #include "libsvm.h"
