@@ -38,7 +38,7 @@ use vars qw(@ISA %EXPORT_TAGS @EXPORT_OK @EXPORT $VERSION);
 @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 @EXPORT = qw( );
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 sub AUTOLOAD {
   my $constname;
@@ -82,7 +82,7 @@ Algorithm::SVM - Perl bindings for the libsvm Support Vector Machine library.
   $svm = new Algorithm::SVM(Model => 'sample.model');
 
   # Classify a dataset.
-  $ds1 = new Algorithm::SVM::Dataset(Label => 1,
+  $ds1 = new Algorithm::SVM::DataSet(Label => 1,
                                      Data  => [0.12, 0.25, 0.33, 0.98]);
   $res = $svm->predict($ds);
 
@@ -186,7 +186,7 @@ successful and a false value otherwise.
 
 The predict method is used to classify a set of data according to the
 loaded model.  The method accepts a single parameter, which should be
-an Algorithm::SVM::Dataset object.  Returns a floating point number
+an Algorithm::SVM::DataSet object.  Returns a floating point number
 corresponding to the predicted value.
 
   $svm->save($filename);
@@ -217,7 +217,7 @@ Cory Spencer <cspencer@sfu.ca>
 
 =head1 SEE ALSO
 
-Algorithm::SVM::Dataset and the libsvm homepage:
+Algorithm::SVM::DataSet and the libsvm homepage:
 http://www.csie.ntu.edu.tw/~cjlin/libsvm/
 
 =head1 ACKNOWLEDGEMENTS

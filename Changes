@@ -11,3 +11,6 @@ Revision history for Perl extension Algorithm::SVM.
 0.05  Tue Nov 26 10:46:46 PST 2002
 	- fixed build error for perl-5.8.0 with ithreads.  Thanks
           to Mike Castle for this report and patch.
+
+0.06  Tue Jan 14 16:59:50 PST 2003
+        - fixed a build error for gcc version 3.x
