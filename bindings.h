@@ -1,8 +1,8 @@
 #ifndef __BINDINGS_H__
 #define __BINDINGS_H__
 
-#include <vector>
-#include <map>
+#include <vector.h>
+#include <map.h>
 
 #include "libsvm.h"
 
