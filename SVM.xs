@@ -128,6 +128,42 @@ SVM::_loadModel(filename)
     OUTPUT:
       RETVAL
 
+int
+SVM::_getNRClass()
+    CODE:
+      RETVAL = THIS->getNRClass();
+    OUTPUT:
+      RETVAL
+
+void
+SVM::_getLabels(classes)
+     int classes
+    PPCODE:
+     int i;
+     int *labels;
+     labels = new int[classes];
+     if(THIS->getLabels(labels)) {
+       for (i=0;i < classes; i++) {
+	  XPUSHs(sv_2mortal(newSViv(labels[i])));
+       }
+     } else {
+       XSRETURN_UNDEF;
+     }
+
+int
+SVM::_getSVRProbability()
+    CODE:
+      RETVAL = THIS->getSVRProbability();
+    OUTPUT:
+      RETVAL
+
+int
+SVM::_checkProbabilityModel()
+    CODE:
+      RETVAL = THIS->checkProbabilityModel();
+    OUTPUT:
+      RETVAL
+
 void
 SVM::_setSVMType(st)
      int st

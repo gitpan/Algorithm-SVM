@@ -51,6 +51,10 @@ class SVM {
   void   setEpsilon(double e) { param.p = e; }
   double getEpsilon() { return param.p; }
   double crossValidate(int nfolds);
+  int    getNRClass();
+  int    getLabels(int* label);
+  double getSVRProbability();
+  int    checkProbabilityModel();
 
   ~SVM();
  private:

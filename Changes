@@ -14,3 +14,14 @@ Revision history for Perl extension Algorithm::SVM.
 
 0.06  Tue Jan 14 16:59:50 PST 2003
         - fixed a build error for gcc version 3.x
+
+0.07  Tue Jun  3 14:46:26 PDT 2003
+	- added a cygwin target to Makefile.PL - Algorithm::SVM
+	  should now compile under Windows.
+	- Algorithm::SVM now has a new maintainer.  As of version
+	  0.07, all inquiries, patches and comments should be
+	  sent to Matthew Laird <matt@brinkman.mbb.sfu.ca>
+
+0.08  Mon May 17 15:09:21 PDT 2003
+	- Upgraded libsvm to 2.6, added new bindings for most
+	  added functionality

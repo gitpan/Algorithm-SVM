@@ -70,3 +70,9 @@ ok($svm->save('sample.model.1'), 1);
 
 print("Loading saved model\n");
 ok($svm->load('sample.model.1'), 1);
+
+print("Checking NRClass\n");
+ok($svm->getNRClass(), 3);
+
+print("Checking model labels\n");
+ok($svm->getLabels(), (10, 0, -10));

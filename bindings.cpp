@@ -268,6 +268,43 @@ double SVM::crossValidate(int nfolds) {
   }
 }
 
+int SVM::getNRClass() {
+
+  if(model == NULL) {
+    return 0;
+  } else {
+    return svm_get_nr_class(model);
+  }
+}
+
+int SVM::getLabels(int* label) {
+    if(model == NULL) {
+	return 0;
+    } else {
+	svm_get_labels(model, label);
+	return 1;
+    }
+}
+
+double SVM::getSVRProbability() {
+
+  if((model == NULL) || (svm_check_probability_model(model))) {
+    return 0;
+  } else {
+    return svm_get_svr_probability(model);
+  }
+}
+
+int SVM::checkProbabilityModel() {
+
+  if(model == NULL) {
+    return 0;
+  } else {
+    return svm_check_probability_model(model);
+  }
+}
+
+
 SVM::~SVM() {
 
   if(x_space != NULL) free(x_space);

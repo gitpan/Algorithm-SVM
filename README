@@ -1,4 +1,4 @@
-Algorithm::SVM version 0.06
+Algorithm::SVM version 0.07
 ===========================
 
 TABLE OF CONTENTS
@@ -17,8 +17,11 @@ TABLE OF CONTENTS
 1) DESCRIPTION
 --------------
 
-Algorithm::SVM was written by Cory Spencer of the Brinkman Labortory and 
-provides Perl bindings for a Support Vector Machine.
+Algorithm::SVM was originally written by Cory Spencer of the Simon Fraser
+University Brinkman Laboratory and provides Perl bindings for a Support 
+Vector Machine.  It is currently maintained by Matthew Laird and all
+inquiries, patches and comments should be sent to him.
+
 Algorithm::SVM is based on the libsvm library written by Chih-Chung Chang
 and Chih-Jen Lin.
 
@@ -109,9 +112,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 7) AUTHOR INFORMATION
 ---------------------
 
-The Perl Algorithm::SVM module is currently maintained by Cory Spencer
-(cspencer@sfu.ca) of the Brinkman Laboratory at Simon Fraser University,
-Burnaby, BC, Canada.
+The Perl Algorithm::SVM module was originally written by Cory Spencer but is
+currently maintained by Matthew Laird <matt@brinkman.mbb.sfu.ca> of the
+Brinkman Laboratory at Simon Fraser University, Burnaby, BC, Canada.
 
   http://www.pathogenomics.sfu.ca/brinkman
 

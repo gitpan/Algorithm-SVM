@@ -38,7 +38,7 @@ use vars qw(@ISA %EXPORT_TAGS @EXPORT_OK @EXPORT $VERSION);
 @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 @EXPORT = qw( );
 
-$VERSION = '0.06';
+$VERSION = '0.08';
 
 sub AUTOLOAD {
   my $constname;
@@ -103,6 +103,15 @@ Algorithm::SVM - Perl bindings for the libsvm Support Vector Machine library.
 
   # Load a saved model from a file.
   $svm->load('new-sample.model');
+
+  # Retreive the number of classes.
+  $num = $svm->getNRClass();
+
+  # Retreive labels for dataset classes
+  (@labels) = $svm->getLabels();
+
+  # Probabilty for regression models, see below for details
+  $prob = $svm->getSVRProbability();
 
 =head1 DESCRIPTION
 
@@ -211,9 +220,29 @@ Performs cross validation on the training set.  If an argument is provided,
 the set is partioned into n subsets, and validated against one another.
 Returns a floating point number representing the accuracy of the validation.
 
-=head1 AUTHOR
+  $num = $svm->getNRClass();
 
-Cory Spencer <cspencer@sfu.ca>
+For a classification model, this function gives the number of classes.
+For a regression or a one-class model, 2 is returned.
+
+  (@labels) = $svm->getLabels();
+
+For a classification model, this function returns the name of the labels
+in an array.  For regression and one-class models undef is returned.
+
+  $prob = $svm->getSVRProbability();
+
+For a regression model with probability information, this function
+outputs a value sigma > 0.  For test data, we consider the probability
+model: target value = predicted value + z, z: Laplace distribution
+e^(-|z|/sigma)/2sigma)
+
+If the model is not for svr or does not contain required information,
+undef is returned.
+
+=head1 MAINTAINER
+
+Matthew Laird <matt@brinkman.mbb.sfu.ca>
 
 =head1 SEE ALSO
 
@@ -292,6 +321,35 @@ sub load {
   croak("Can't load model because no filename provided") if(! $file);
 
   return _loadModel($self->{svm}, $file);
+}
+
+sub getNRClass {
+    my ($self) = @_;
+
+    return _getNRClass($self->{svm});
+}
+
+sub getLabels {
+    my ($self) = @_;
+
+    my $class = $self->getNRClass();
+    if($class) {
+	return _getLabels($self->{svm}, $class);
+    }
+
+    return undef;
+}
+
+sub getSVRProbability {
+    my ($self) = @_;
+
+    return _getSVRProbability($self->{svm});
+}
+
+sub checkProbabilityModel {
+    my ($self) = @_;
+
+    return _checkProbabilityModel($self->{svm});
 }
 
 sub train {

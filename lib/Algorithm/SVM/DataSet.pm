@@ -66,9 +66,9 @@ value is provided, the method will return the corresponding value.  If
 two value are provided, the method will set the first parameter to the
 value of the second.
 
-=head1 AUTHOR
+=head1 MAINTAINER
 
-Cory Spencer <cspencer@sfu.ca>
+Matthew Laird <matt@brinkman.mbb.sfu.ca>
 
 =head1 SEE ALSO
 
