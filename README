@@ -1,4 +1,4 @@
-Algorithm::SVM version 0.09
+Algorithm::SVM version 0.10
 ===========================
 
 TABLE OF CONTENTS
@@ -33,6 +33,8 @@ information described in the BUGS section below.
 
 2) INSTALLATION
 ---------------
+
+For Solaris installation instructions please see README.solaris
 
 To install this module type the following:
 
