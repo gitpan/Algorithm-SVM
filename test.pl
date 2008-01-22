@@ -76,3 +76,98 @@ ok($svm->getNRClass(), 3);
 
 print("Checking model labels\n");
 ok($svm->getLabels(), (10, 0, -10));
+
+my $cnt=0;
+for (my $i=1; $i<=@d1; $i++) {
+  if ($ds1->attribute($i) == $d1[$i-1]) {
+		$cnt++;
+	}
+}
+ok($cnt,20);
+
+print("Checking train\n");
+my @tset=($ds1,$ds2,$ds3);
+ok($svm->train(@tset));
+
+$cnt=0;
+for (my $i=1; $i<=@d1; $i++) {
+  if ($ds1->attribute($i) == $d1[$i-1]) {
+		$cnt++;
+	}
+}
+ok($cnt,20);
+
+
+print("Checking retrain\n");
+
+my $p1 = $svm->predict($ds1);
+my $p2 = $svm->predict($ds2);
+my $p3 = $svm->predict($ds3);
+
+ok($svm->retrain());
+
+ok($svm->predict($ds1),$p1);
+ok($svm->predict($ds2),$p2);
+ok($svm->predict($ds3),$p3);
+
+print("Checking retrain after DataSet changes\n");
+# this tests whether reallocating memory after realign
+# works ok.
+$ds1->attribute(2,$ds1->attribute(2));
+$ds2->attribute(2,$ds2->attribute(2));
+$ds3->attribute(2,$ds3->attribute(2));
+
+ok($svm->retrain());
+
+ok($svm->predict($ds1),$p1);
+ok($svm->predict($ds2),$p2);
+ok($svm->predict($ds3),$p3);
+
+print("Checking svm destructor\n");
+
+$svm=undef; # destroy svm object (test destructor)
+ok(1);
+
+print("Checking attribute value changes\n");
+$ds1->attribute($_, 1) for(1..scalar(@d1));
+$cnt=0;
+for ($i=1;$i<=scalar(@d1);$i++) {
+  if ($ds1->attribute($i)==1) { $cnt++; } else { print $ds1->attribute($i),"::\n"; }
+}
+ok($cnt,20);
+
+$ds2->attribute(3, -1.5);
+$ds2->attribute(5, -1.5);
+$ds2->attribute(4, -1.5);
+$ds2->attribute(2, -1.5);
+$ds2->attribute(1, -1.5);
+$cnt=0;
+for ($i=1;$i<=5;$i++) {
+  if ($ds2->attribute($i)==-1.5) { $cnt++; }
+}
+for ($i=6;$i<=scalar(@d2);$i++) {
+  if ($ds2->attribute($i)==$d2[$i-1]) { $cnt++; }
+}
+ok($cnt,20);
+
+$ds3->attribute($_, 0) for(1..scalar(@d3));
+$cnt=0;
+for ($i=1;$i<=scalar(@d3);$i++) {
+  if ($ds3->attribute($i)==0) { $cnt++; }
+}
+ok($cnt,20);
+
+print("Checking asArray\n");
+
+my @x = $ds2->asArray();
+# note that this takes attr. 0 as first value, which has never
+# been set and thus is equal to zero
+$cnt=0;
+if ($x[0]==0.0) { $cnt++; }
+for ($i=1;$i<=5;$i++) {
+  if ($x[$i]==-1.5) { $cnt++; }
+}
+for ($i=6;$i<=scalar(@d2);$i++) {
+  if ($x[$i]==$d2[$i-1]) { $cnt++; }
+}
+ok($cnt,21);

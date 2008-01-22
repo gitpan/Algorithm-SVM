@@ -38,7 +38,7 @@ use vars qw(@ISA %EXPORT_TAGS @EXPORT_OK @EXPORT $VERSION);
 @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 @EXPORT = qw( );
 
-$VERSION = '0.10';
+$VERSION = '0.13';
 
 sub AUTOLOAD {
   my $constname;
@@ -198,6 +198,20 @@ loaded model.  The method accepts a single parameter, which should be
 an Algorithm::SVM::DataSet object.  Returns a floating point number
 corresponding to the predicted value.
 
+  $res = $svm->predict_value($ds);
+
+The predict_value method works similar to predict, but returns a
+floating point value corresponding to the output of the trained
+SVM. For a linear kernel, this can be used to reconstruct the
+weights for each attribute as follows: the bias of the linear
+function is returned when calling predict_value on an empty dataset
+(all zeros), and by setting each variable in turn to one and all
+others to zero, you get one value per attribute which corresponds
+to bias + weight_i. By subtracting the bias, the final linear
+model is obtained as sum of (weight_i * attr_i) plus bias. The
+sign of this value corresponds to the binary prediction.
+
+
   $svm->save($filename);
 
 Saves the currently loaded model to the specified filename.  Returns a
@@ -243,6 +257,7 @@ undef is returned.
 =head1 MAINTAINER
 
 Matthew Laird <matt@brinkman.mbb.sfu.ca>
+Alexander K. Seewald <alex@seewald.at>
 
 =head1 SEE ALSO
 
@@ -255,6 +270,10 @@ Thanks go out to Fiona Brinkman and the other members of the Simon Fraser
 University Brinkman Laboratory for providing me the opportunity to develop
 this module.  Additional thanks go to Chih-Jen Lin, one of the libsvm authors,
 for being particularly helpful during the development process.
+
+As well to Dr. Alexander K. Seewald of Seewald Solutions for many bug fixes,
+new test cases, and lowering the memory footprint by a factor of 20.  Thank
+you very much!
 
 =cut
 
@@ -307,6 +326,15 @@ sub predict {
   return _predict($self->{svm}, $x);
  }
 
+sub predict_value {
+  my ($self, $x) = @_;
+
+  # Check if we got a dataset object.
+  croak("Not an Algorithm::DataSet") if(ref($x) ne "Algorithm::SVM::DataSet");
+
+  return _predict_value($self->{svm}, $x);
+ }
+
 sub save {
   my ($self, $file) = @_;
 
@@ -337,7 +365,7 @@ sub getLabels {
 	return _getLabels($self->{svm}, $class);
     }
 
-    return undef;
+    return 0;
 }
 
 sub getSVRProbability {

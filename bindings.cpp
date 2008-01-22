@@ -1,6 +1,108 @@
 #include "bindings.h"
+#include <errno.h>
 
-SVM::SVM(int st, int kt, double d, double g, double c0, double C, double nu,
+#ifdef DEBUG
+#include <stdarg.h>
+void printf_dbg(const char *a, ...) {
+  va_list alist;
+	va_start(alist,a);
+	vfprintf(stdout,a,alist);
+	va_end(alist);
+	fflush(NULL);
+}
+#else
+void printf_dbg(const char *a, ...) {}
+#endif
+
+DataSet::DataSet(double l) {
+  label = l;
+	realigned=false;
+	n=0;
+	max_n=16;
+	attributes = (struct svm_node *)malloc(sizeof(struct svm_node) * max_n);
+	assert(attributes!=NULL);
+	attributes[0].index=-1;  // insert end-of-data marker
+	max_i=-1;
+}
+
+DataSet::~DataSet() {
+  printf_dbg("destructor DS called\n");
+	if (realigned) {
+		attributes[n].value=-1; // notify svm that dataset is destroyed
+	} else {
+		free(attributes);
+	}
+}
+
+void DataSet::realign(struct svm_node *address) {
+  assert(address!=NULL);
+	memcpy(address,attributes,sizeof(struct svm_node)*(n+1));
+  free(attributes); attributes=address;
+	max_n=n+1; realigned=true; attributes[n].value=0;
+}
+
+void DataSet::setAttribute(int k, double v) {
+  if (realigned) {
+		printf_dbg("set Attr with realigned k=%d, v=%lf\n",k,v);
+		max_n=n+2; attributes[n].value=-1; // notify svm to not care about allocating memory for this dataset
+		struct svm_node *address=(struct svm_node *)malloc(sizeof(struct svm_node)*max_n);
+		assert(address!=NULL);
+		memcpy(address,attributes,sizeof(struct svm_node)*(n+1));
+		attributes=address; realigned=false; if (k==-1) { return; }
+	} else {
+	  printf_dbg("set Attr without realigned k=%d, v=%lf\n",k,v);
+	}
+
+  if (k>max_i) {
+		max_i=k;
+		if (v!=0) {
+			attributes[n].index=k;
+			attributes[n].value=v; n++; attributes[n].index=-1;
+		}
+	} else {
+    // assume sorted array - check where it belongs
+		int upper = n-1; int lower=0; int midpos=0; int midk=-1;
+		while (lower<=upper) {
+			midpos = (upper+lower)/2;
+			midk=attributes[midpos].index;
+			if (k>midk) { lower=midpos+1; }
+			else if (k<midk) { upper=midpos-1; }
+			else { break; }
+		}
+		if (k==midk) { attributes[midpos].value=v; }
+		else {
+			if (v!=0) {
+				for (int i=n; i>lower; i--) {
+					attributes[i].index=attributes[i-1].index;
+					attributes[i].value=attributes[i-1].value;
+				}
+				attributes[lower].index=k;
+				attributes[lower].value=v; n++; attributes[n].index=-1;
+			}
+		}
+	}
+	if (n>=max_n-1) {
+		max_n*=2;
+		attributes = (struct svm_node *)realloc(attributes,sizeof(struct svm_node)*max_n);
+		assert(attributes!=NULL);
+	}
+}
+
+double DataSet::getAttribute(int k) {
+	int upper = n-1; int lower=0; int midpos=0; int midk=-1;
+	while (upper>=lower) {
+		midpos = (upper+lower)/2;
+		midk=attributes[midpos].index;
+		if (k>midk) { lower=midpos+1; }
+		else if (k<midk) { upper=midpos-1; }
+		else { break; }
+	}
+	if (k==midk) { return attributes[midpos].value; } else { return 0; }
+	return -1;
+}
+
+
+SVM::SVM(int st, int kt, int d, double g, double c0, double C, double nu,
 	 double e) {
 
   // Default parameter settings.
@@ -19,8 +121,9 @@ SVM::SVM(int st, int kt, double d, double g, double c0, double C, double nu,
   param.weight_label = NULL;
   param.weight = NULL;
   param.probability = 0;
-  
-  x_space = NULL;
+	nelem=0;
+ 
+  x_space = NULL;	
   model   = NULL;
   prob    = NULL;
 
@@ -34,13 +137,32 @@ void SVM::addDataSet(DataSet *ds) {
 
 
 void SVM::clearDataSet() {
-
   dataset.clear();
+}
+
+void SVM::free_x_space() {
+  if (x_space!=NULL) {
+		long idx=nelem;
+		for (int i=dataset.size()-1; i>=0; i--) {
+			assert(x_space[idx-1].index==-1);
+			if (x_space[idx-1].value!=-1) {
+				printf_dbg((dataset[i]->realigned ? "+" : "-"));
+				printf_dbg("%lf\n",x_space[idx-1].value);
+			  idx-=((dataset[i]->n)+1);
+				dataset[i]->setAttribute(-1,0);
+			} else {
+				printf_dbg("%d already destroyed or changed.\n",i);
+				idx-=2; while (idx >= 0 && x_space[idx].index!=-1) { idx--; }
+				idx++;
+			}
+		}
+		assert(idx==0);
+		free(x_space); x_space=NULL;
+	}
 }
 
 int SVM::train(int retrain) {
   const char *error;
-  int nelem = 0;
 
   // Free any old model we have.
   if(model != NULL) {
@@ -54,10 +176,9 @@ int SVM::train(int retrain) {
     return 1;
   }
 
-  if(x_space != NULL) free(x_space);
+	if (x_space != NULL) free_x_space();
   if(prob != NULL) free(prob);
 
-  x_space = NULL;
   model   = NULL;
   prob    = NULL;
 
@@ -68,75 +189,76 @@ int SVM::train(int retrain) {
 
   // Allocate memory for the labels/nodes.
   prob->y = (double *)malloc(sizeof(double) * prob->l);
-  prob->x = (struct svm_node **)malloc(sizeof(struct svm_node) * prob->l);
+  prob->x = (struct svm_node **)malloc(sizeof(struct svm_node *) * prob->l);
 
   if((prob->y == NULL) || (prob->x == NULL)) {
     if(prob->y != NULL) free(prob->y);
+    if(prob->x != NULL) free(prob->x);
     free(prob);
     return 0;
   }
 
   // Check for errors with the parameters.
   error = svm_check_parameter(prob, &param);
-  if(error) return 0;
+  if(error) { free(prob->x); free (prob->y); free(prob); return 0; }
 
-  // Figure out the total number of elements.
-  for(int i = 0; i < prob->l; i++) nelem += dataset[i]->attributes.size() + 1;
-  x_space = (struct svm_node *)malloc(sizeof(struct svm_node) * nelem);
-
-  if(x_space == NULL) {
-    free(prob->y);
-    free(prob->x);
-    free(prob);
-    return 0;
+	// Allocate x_space and successively release dataset memory
+	// (realigning the dataset memory to x_space)
+	nelem=0;
+	for (unsigned int i=0; i<dataset.size(); i++) {
+		nelem+=dataset[i]->n+1;
   }
+	x_space = (struct svm_node *)malloc(sizeof(struct svm_node)*nelem);
+	long idx=0;
+	for (unsigned int i=0; i<dataset.size(); i++) {
+		dataset[i]->realign(x_space+idx);
+		idx+=(dataset[i]->n)+1;
+	}
+
+	if (x_space==NULL) {
+    free(prob->y);
+		free(prob->x);
+		free(prob);
+		nelem=0;
+		return 0;
+	}
 
   // Munge the datasets into the format that libsvm expects.
-  int n = 0, maxi = 0; 
+  int maxi = 0; long n=0;
   for(int i = 0; i < prob->l; i++) {
-    prob->x[i] = &x_space[n];
+    prob->x[i] = &x_space[n]; //dataset[i]->attributes;
+		assert((dataset[i]->attributes)==(&x_space[n]));
+		n+=dataset[i]->n+1;
     prob->y[i] = dataset[i]->getLabel();
 
-    map<int,double>::iterator j;
-    for(j = dataset[i]->attributes.begin(); j != dataset[i]->attributes.end(); j++) {
-      x_space[n].index = (*j).first;
-      x_space[n].value = (*j).second;
-      n++;
-    }
-
-    if(n >= 1 && x_space[n-1].index > maxi) maxi = x_space[n-1].index;
-
-    x_space[n++].index = -1;
+    if( dataset[i]->max_i > maxi) maxi = dataset[i]->max_i;
   }
+	printf_dbg("\nnelem=%ld\n",n);
 
   if(param.gamma == 0) param.gamma = 1.0/maxi;
 
   model = svm_train(prob, &param);
-  
+
   return 1;
 }
 
+double SVM::predict_value(DataSet *ds) {
+  double pred[100];
+
+  if(ds == NULL) return 0;
+ 
+  svm_predict_values(model, ds->attributes, pred);
+
+  return pred[0];
+}
+
+
 double SVM::predict(DataSet *ds) {
-  struct svm_node *node;
   double pred;
 
   if(ds == NULL) return 0;
-  
-  node = (struct svm_node *)malloc(sizeof(struct svm_node) * (ds->attributes.size() + 1));
-  if(node == NULL) return 0;
-    
-  map<int,double>::iterator i;
-  int j = 0;
-  for(i = ds->attributes.begin(); i != ds->attributes.end(); i++) {
-    node[j].index = (*i).first;
-    node[j].value = (*i).second;
-    j++;
-  }
-  node[j].index = -1;
-
-  pred = svm_predict(model, node);
-
-  free(node);
+ 
+  pred = svm_predict(model, ds->attributes);
 
   return pred;
 }
@@ -155,9 +277,8 @@ int SVM::loadModel(char *filename) {
 
   if(filename == NULL) return 0;
 
-  if(x_space != NULL) {
-    free(x_space);
-    x_space = NULL;
+	if(x_space != NULL) {
+    free_x_space();
   }
 
   if(model != NULL) {
@@ -257,15 +378,10 @@ double SVM::crossValidate(int nfolds) {
     free(subprob.y);
   }		
   if(param.svm_type == EPSILON_SVR || param.svm_type == NU_SVR) {
-    // printf("Cross Validation Mean squared error = %g\n",total_error/prob->l);
-    // printf("Cross Validation Squared correlation coefficient = %g\n",
     return ((prob->l*sumvy-sumv*sumy)*(prob->l*sumvy-sumv*sumy))/
       ((prob->l*sumvv-sumv*sumv)*(prob->l*sumyy-sumy*sumy));
-
-    //);
   } else {
     return 100.0*total_correct/prob->l;
-    //cout << "Cross Validation Accuracy = " << 100.0*total_correct/prob->l << endl;
   }
 }
 
@@ -305,10 +421,8 @@ int SVM::checkProbabilityModel() {
   }
 }
 
-
 SVM::~SVM() {
-
-  if(x_space != NULL) free(x_space);
-  if(model != NULL) svm_destroy_model(model);
-  if(prob != NULL) free(prob);
+	if(x_space!=NULL) { free_x_space(); }
+  if(model != NULL) { svm_destroy_model(model); model=NULL; }
+  if(prob != NULL) { free(prob); prob=NULL; }
 }

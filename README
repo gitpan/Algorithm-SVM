@@ -1,4 +1,4 @@
-Algorithm::SVM version 0.10
+Algorithm::SVM version 0.12
 ===========================
 
 TABLE OF CONTENTS
@@ -132,3 +132,7 @@ The libsvm homepage is currently located at:
 
 Thanks go to Chih-Jen Lin, one of the libsvm authors, for being particularly
 helpful during the development process of this module.
+
+As well to Dr. Alexander K. Seewald of Seewald Solutions for many bug fixes,
+new test cases, and lowering the memory footprint by a factor of 20.  Thank
+you very much!

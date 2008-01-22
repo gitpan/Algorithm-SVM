@@ -21,7 +21,7 @@ DataSet *_new_dataset(double l) {
   return new DataSet(l);
 }
 
-SVM *_new_svm(int st, int kt, double d, double g, double c0, double C,
+SVM *_new_svm(int st, int kt, int d, double g, double c0, double C,
 	      double nu, double e) {
 
   return new SVM(st, kt, d, g, c0, C, nu, e);
@@ -61,6 +61,29 @@ DataSet::_setAttribute(k,v)
     CODE:
       THIS->setAttribute(k,v);
 
+int
+DataSet::_getIndexAt(i)
+			int i
+		CODE:
+			RETVAL = THIS->getIndexAt(i);
+		OUTPUT:
+			RETVAL
+
+double
+DataSet::_getValueAt(i)
+			int i
+		CODE:
+			RETVAL = THIS->getValueAt(i);
+		OUTPUT:
+			RETVAL
+
+int
+DataSet::_getMaxI()
+		CODE:
+			RETVAL = THIS->getMaxI();
+		OUTPUT:
+			RETVAL
+
 void
 DataSet::DESTROY()
 
@@ -70,7 +93,7 @@ SVM *
 _new_svm(st,kt,d,g,c0,C,nu,e)
      int st
      int kt
-     double d
+     int d
      double g
      double c0
      double C
@@ -101,6 +124,14 @@ SVM::_crossValidate(nfolds)
      int nfolds
     CODE:
       RETVAL = THIS->crossValidate(nfolds);
+    OUTPUT:
+      RETVAL
+
+double
+SVM::_predict_value(ds)
+     DataSet *ds
+    CODE:
+      RETVAL = THIS->predict_value(ds);
     OUTPUT:
       RETVAL
 
@@ -150,7 +181,7 @@ SVM::_getLabels(classes)
        XSRETURN_UNDEF;
      }
 
-int
+double
 SVM::_getSVRProbability()
     CODE:
       RETVAL = THIS->getSVRProbability();
@@ -205,7 +236,7 @@ SVM::_getGamma()
 
 void
 SVM::_setDegree(d)
-     double d
+     int d
     CODE:
       THIS->setDegree(d);
 

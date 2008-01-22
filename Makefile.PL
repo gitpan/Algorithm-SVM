@@ -1,8 +1,8 @@
 use ExtUtils::MakeMaker;
 
-$CC = 'c++';
+$CC = 'g++';
 
-%args = ();
+%args = ('CCFLAGS' => '-Wall');
 
 if($^O eq 'cygwin') {
   $args{'LDDLFLAGS'} = '-shared -L/usr/local/lib';
@@ -19,5 +19,5 @@ WriteMakefile('NAME'          => 'Algorithm::SVM',
 	      'CC'            => $CC,
 	      'LD'            => '$(CC)',
 	      'OBJECT'        => 'SVM.o libsvm.o bindings.o',
-	      'XSOPT'         => '-C++',
+	      'XSOPT'         => '-C++ -noprototypes',
               %args);

@@ -33,3 +33,17 @@ Revision history for Perl extension Algorithm::SVM.
 	- Added Solaris support, unfortunately not in an
           automated fashion.  If anyone can suggest improvements...
           I'm very open to suggestions.
+
+0.12  Sun Jan 15 11:39:00 GMT+1 2006
+  - Updated libsvm to 2.81 (i.e. added half a dozen lines of code)
+  - added many testcases in test.pl
+  - SVM: Added binding for predict_values, improved memory usage
+  - DataSet: changed to use sparse format internally
+             internal format similar to what libsvm uses
+             added asArray function, improved memory usage
+  - All changes (except libsvm update which slightly changes the
+    learned models) are completely transparent to the user. No
+    changes in programs depending on this should be necessary.
+
+0.13  Tue Jan 22 13:38:00 PDT 2008
+	- Updated the underlaying libsvm version to 2.85
